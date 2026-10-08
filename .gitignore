@@ -30,6 +30,7 @@ dist-ssr
 
 # Local tooling and private artifacts
 .npm-cache/
+supabase/.temp/
 *.tsbuildinfo
 *.pem
 *.key
