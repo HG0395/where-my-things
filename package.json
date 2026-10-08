@@ -8,13 +8,17 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint src vite.config.ts",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.ts"
+    "test": "node --test tests/*.test.ts",
+    "check:server": "npx --yes --package=deno deno check --config supabase/functions/deno.json supabase/functions/byok-key/index.ts supabase/functions/recognize-item/index.ts",
+    "test:server": "npx --yes --package=deno deno test --allow-env --config supabase/functions/deno.json supabase/functions/handlers_test.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

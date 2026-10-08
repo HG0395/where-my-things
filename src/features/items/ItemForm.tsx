@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import type { Item, ItemDraft, StorageLocation } from "../../domain/types.ts";
 import { LocationSelect } from "../../components/ui/LocationSelect.tsx";
 import { readPhoto } from "../../lib/imageValidation.ts";
+import { AiAnalysis } from "./AiAnalysis.tsx";
 
 export function ItemForm({
   item,
@@ -27,6 +28,8 @@ export function ItemForm({
   const [photo, setPhoto] = useState<string | null>(item?.photo ?? null);
   const [error, setError] = useState("");
   const [reading, setReading] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [photoVersion, setPhotoVersion] = useState(0);
   const [showCandidates, setShowCandidates] = useState(false);
   const photoRequest = useRef(0);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -39,7 +42,10 @@ export function ItemForm({
     setShowCandidates(false);
     try {
       const nextPhoto = await readPhoto(file);
-      if (request === photoRequest.current) setPhoto(nextPhoto);
+      if (request === photoRequest.current) {
+        setPhoto(nextPhoto);
+        setPhotoVersion((value) => value + 1);
+      }
     } catch (cause) {
       if (request === photoRequest.current) setError((cause as Error).message);
     } finally {
@@ -77,7 +83,7 @@ export function ItemForm({
           <button
             type="button"
             className="button secondary small"
-            disabled={reading}
+            disabled={reading || aiBusy}
             onClick={() => fileInput.current?.click()}
           >
             사진 {photo ? "교체" : "선택"}
@@ -85,7 +91,7 @@ export function ItemForm({
           <button
             type="button"
             className="button secondary small"
-            disabled={reading}
+            disabled={reading || aiBusy}
             onClick={() => cameraInput.current?.click()}
           >
             사진 촬영
@@ -94,10 +100,11 @@ export function ItemForm({
             <button
               type="button"
               className="text-button"
-              disabled={reading}
+              disabled={reading || aiBusy}
               onClick={() => {
                 photoRequest.current++;
                 setPhoto(null);
+                setPhotoVersion((value) => value + 1);
                 setShowCandidates(false);
               }}
             >
@@ -145,7 +152,7 @@ export function ItemForm({
           <button
             type="button"
             className="button secondary small"
-            disabled={!photo || reading}
+            disabled={!photo || reading || aiBusy}
             onClick={() => setShowCandidates(true)}
           >
             모의 분석
@@ -177,6 +184,15 @@ export function ItemForm({
           </div>
         )}
       </div>
+      <AiAnalysis
+        key={photoVersion}
+        photo={photo}
+        onBusy={setAiBusy}
+        onApply={(nextName, nextTags) => {
+          setName(nextName);
+          setTags(nextTags.join(", "));
+        }}
+      />
       <label htmlFor="item-name">
         물품 이름 <span className="required">필수</span>
       </label>
@@ -243,7 +259,11 @@ export function ItemForm({
         <button type="button" className="button secondary" onClick={onClose}>
           취소
         </button>
-        <button type="submit" disabled={reading} className="button primary">
+        <button
+          type="submit"
+          disabled={reading || aiBusy}
+          className="button primary"
+        >
           {item ? "수정 저장" : "물품 등록"}
         </button>
       </footer>

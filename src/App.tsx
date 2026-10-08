@@ -8,11 +8,13 @@ import { LocationSelect } from "./components/ui/LocationSelect.tsx";
 import { ItemForm } from "./features/items/ItemForm.tsx";
 import { LocationManager } from "./features/locations/LocationManager.tsx";
 import { LocationTree } from "./features/locations/LocationTree.tsx";
+import { useAuth } from "./features/auth/authContext.ts";
+import { AccountSettings } from "./features/auth/AccountSettings.tsx";
 
 type Panel =
   | { type: "new" }
   | { type: "edit" | "detail" | "move" | "delete"; id: string }
-  | { type: "locations" }
+  | { type: "locations" | "account" }
   | null;
 const symbols: Record<string, string> = {
   전자기기: "⌁",
@@ -94,6 +96,11 @@ function MoveForm({
 }
 
 function App() {
+  const { user } = useAuth();
+  return <Inventory key={user?.id ?? "demo"} />;
+}
+function Inventory() {
+  const { user, loading } = useAuth();
   const [repository] = useState(() => new MemoryRepository());
   const [data, setData] = useState(() => repository.snapshot());
   const [query, setQuery] = useState("");
@@ -176,9 +183,9 @@ function App() {
           <div className="sidebar-bottom">
             <span className="demo-badge">DEMO</span>
             <p>
-              로그인 없이 둘러보는 중이에요.
+              물품은 데모 데이터예요.
               <br />
-              모든 데이터는 이 화면에서만 유지돼요.
+              물품 변경은 이 화면에서만 유지돼요.
             </p>
           </div>
         </aside>
@@ -190,7 +197,18 @@ function App() {
                 <span />
                 모의 데이터
               </span>
-              <span className="avatar" aria-label="데모 사용자">
+              <button
+                type="button"
+                className="button secondary small"
+                onClick={() => open({ type: "account" })}
+              >
+                {loading
+                  ? "연결 중…"
+                  : user
+                    ? "내 계정·AI 설정"
+                    : "로그인·AI 설정"}
+              </button>
+              <span className="avatar" aria-label="사용자">
                 나
               </span>
             </div>
@@ -216,7 +234,8 @@ function App() {
               <span aria-hidden="true">ⓘ</span>
               <p>
                 <strong>데모 모드</strong> · 새로고침하면 물품·위치·사진이
-                초기화됩니다. 사진은 서버로 전송되지 않아요.
+                초기화됩니다. 원본 사진은 브라우저에만 보관됩니다. AI 분석은
+                동의 후 사본을 전송해요.
               </p>
             </div>
             <div className="stats-grid">
@@ -598,6 +617,11 @@ function App() {
               </button>
             </footer>
           </div>
+        </Modal>
+      )}
+      {panel?.type === "account" && (
+        <Modal title="계정·내 Gemini API" onClose={close}>
+          <AccountSettings />
         </Modal>
       )}
       {panel?.type === "locations" && (

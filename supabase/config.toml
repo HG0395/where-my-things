@@ -1,0 +1,9 @@
+project_id = "where-my-things"
+
+# JWTs are validated with auth.getUser() in BOTH handlers, before any DB/key access.
+# This supports Supabase projects using asymmetric signing keys.
+[functions.byok-key]
+verify_jwt = false
+
+[functions.recognize-item]
+verify_jwt = false
