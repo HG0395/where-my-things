@@ -2,6 +2,16 @@
 
 한국어 물품·보관 위치 관리 웹앱입니다. React, TypeScript, Vite, Tailwind CSS와 Supabase를 사용합니다.
 
+## 공개 사이트와 Cloudflare
+
+- 공개 홈: https://where-my-things.pages.dev/
+- 물품 관리 데모: https://where-my-things.pages.dev/app/
+- 한국어·영어 정리 가이드, 사진·AI 가이드, 개인정보 안내, 소개·문의 페이지 제공
+
+Cloudflare Pages의 빌드 명령은 **`npm run build`**, 출력 폴더는 **`dist`**, 프로덕션 브랜치는 **`main`**입니다. 빌드 명령·출력을 비워 두면 TypeScript 소스가 그대로 배포되어 흰 화면이 발생합니다. 자세한 복구 방법은 [Cloudflare 배포 안내](docs/Cloudflare_배포.md)를 확인하세요.
+
+공개 페이지는 빌드 중 HTML로 생성하므로 JavaScript 없이도 읽고 탐색할 수 있습니다. React 물품 관리 화면은 `/app/`에 배치하며 개인 기록 화면은 검색 색인에서 제외합니다. 광고 스크립트나 허위 광고 게시자 ID는 추가하지 않습니다. 이 구성과 콘텐츠 보완은 AdSense 승인을 보장하지 않습니다.
+
 ## 현재 가능한 기능
 
 - 공간 → 방 → 가구 → 서랍 형태의 위치 관리와 물품 등록·검색·수정·이동·삭제
@@ -11,11 +21,11 @@
 
 공개 소스에는 개인 프로젝트 연결 정보를 포함하지 않습니다. 설정 없이 실행하면 데모로 작동하고 외부 AI 요청은 없습니다. 실제 로그인·키 저장·분석은 [설정 안내](docs/사용자_API_설정.md)를 완료해야 사용할 수 있습니다.
 
-물품·위치·원본 사진은 아직 브라우저 메모리에만 있습니다. 새로고침, 탭 종료, 로그인 계정 전환 시 초기화됩니다. PC·Android 동기화, 구성원 초대, 비공개 사진 저장과 배포는 구현하지 않았습니다. 키 관리 테이블의 RLS를 물품 공유 권한 구현으로 해석하면 안 됩니다.
+물품·위치·원본 사진은 아직 브라우저 메모리에만 있습니다. 새로고침, 탭 종료, 로그인 계정 전환 시 초기화됩니다. PC·Android 동기화, 구성원 초대, 비공개 사진 저장은 구현하지 않았습니다. 키 관리 테이블의 RLS를 물품 공유 권한 구현으로 해석하면 안 됩니다.
 
 ## VS Code 실행
 
-Node.js 24 이상을 설치한 뒤 VS Code에서 이 폴더를 열고 `터미널 → 새 터미널`을 선택합니다.
+Node.js 22.16 이상(또는 24)을 설치한 뒤 VS Code에서 이 폴더를 열고 `터미널 → 새 터미널`을 선택합니다.
 
 ```powershell
 npm.cmd ci
@@ -62,15 +72,17 @@ supabase/migrations/                키·캐시·사용량 테이블과 RLS
 ## 검사
 
 ```powershell
+npm.cmd run build
 npm.cmd test
 npm.cmd run lint
-npm.cmd run build
 npm.cmd run check:server
 npm.cmd run test:server
 npm.cmd run preview
 ```
 
 서버 검사 명령은 처음 실행할 때 Deno 도구와 의존성을 내려받습니다. 테스트는 가짜 응답과 로컬 PostgreSQL 엔진을 사용하며 실제 Gemini나 Supabase에 연결하지 않습니다. 검증 범위는 [검증결과](검증결과.md)에 있습니다.
+
+공개 사이트 전체는 `npm.cmd run build` 후 `npm.cmd run preview`에서 확인합니다. `npm.cmd run dev`는 React 앱 개발용입니다. 배포 산출물 검사 때문에 `npm.cmd test` 전 빌드가 필요합니다. `scripts/build-site.mjs`가 공개 콘텐츠와 HTML을 만들며 `public/`에는 호스팅 헤더와 robots.txt를 둡니다.
 
 ## 공개 저장소
 

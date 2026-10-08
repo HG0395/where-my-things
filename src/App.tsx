@@ -187,6 +187,11 @@ function Inventory() {
             onSelect={setLocation}
           />
           <div className="sidebar-bottom">
+            <nav className="public-links" aria-label={language === "en" ? "Help" : "도움말"}>
+              <a href={language === "en" ? "/en/" : "/"}>{language === "en" ? "Home" : "홈"}</a>
+              <a href={language === "en" ? "/en/guide/" : "/guide/"}>{language === "en" ? "Storage guide" : "정리 가이드"}</a>
+              <a href={language === "en" ? "/en/privacy/" : "/privacy/"}>{language === "en" ? "Privacy" : "개인정보 안내"}</a>
+            </nav>
             <span className="demo-badge">DEMO</span>
             <p>
               {t("물품은 데모 데이터예요.")}
