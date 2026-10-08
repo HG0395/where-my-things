@@ -1,3 +1,4 @@
+import { useI18n } from "./i18n/context.ts";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Item, StorageLocation } from "./domain/types.ts";
@@ -43,6 +44,7 @@ function MoveForm({
   onMove: (id: string | null) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [target, setTarget] = useState(item.locationId ?? "");
   const [error, setError] = useState("");
   function submit(event: FormEvent) {
@@ -55,14 +57,14 @@ function MoveForm({
   }
   return (
     <form onSubmit={submit} className="form-stack">
-      <p>
-        <strong>{item.name}</strong> 물품을 어디로 옮길까요?
-      </p>
+      <p>{t("{name} 물품을 어디로 옮길까요?", { name: item.name })}</p>
       <div className="current-location">
-        <span className="eyebrow">현재 위치</span>
-        <p className="path">{locationPath(locations, item.locationId)}</p>
+        <span className="eyebrow">{t("현재 위치")}</span>
+        <p className="path">
+          {locationPath(locations, item.locationId, t("위치 미지정"))}
+        </p>
       </div>
-      <label htmlFor="move-target">새 보관 위치</label>
+      <label htmlFor="move-target">{t("새 보관 위치")}</label>
       <LocationSelect
         locations={locations}
         value={target}
@@ -71,24 +73,26 @@ function MoveForm({
       />
       <p className="help">
         {target === (item.locationId ?? "")
-          ? "현재 위치와 같아요. 다른 위치를 선택해 주세요."
-          : `이동할 위치: ${locationPath(locations, target || null)}`}
+          ? t("현재 위치와 같아요. 다른 위치를 선택해 주세요.")
+          : t("이동할 위치: {path}", {
+              path: locationPath(locations, target || null, t("위치 미지정")),
+            })}
       </p>
       {error && (
         <p role="alert" className="error">
-          {error}
+          {t(error)}
         </p>
       )}
       <footer className="modal-actions">
         <button type="button" className="button secondary" onClick={onClose}>
-          취소
+          {t("취소")}
         </button>
         <button
           type="submit"
           className="button primary"
           disabled={target === (item.locationId ?? "")}
         >
-          이동 저장
+          {t("이동 저장")}
         </button>
       </footer>
     </form>
@@ -100,6 +104,7 @@ function App() {
   return <Inventory key={user?.id ?? "demo"} />;
 }
 function Inventory() {
+  const { t, language, setLanguage, dateLocale } = useI18n();
   const { user, loading } = useAuth();
   const [repository] = useState(() => new MemoryRepository());
   const [data, setData] = useState(() => repository.snapshot());
@@ -116,10 +121,10 @@ function Inventory() {
       : undefined;
   const locationLabel =
     location === "unassigned"
-      ? "위치 미지정"
+      ? t("위치 미지정")
       : location
-        ? locationPath(data.locations, location)
-        : "모든 물품";
+        ? locationPath(data.locations, location, t("위치 미지정"))
+        : t("모든 물품");
   function refresh(message: string) {
     setData(repository.snapshot());
     setNotice(message);
@@ -134,7 +139,7 @@ function Inventory() {
   return (
     <>
       <a href="#main-content" className="skip-link">
-        물품 목록으로 건너뛰기
+        {t("물품 목록으로 건너뛰기")}
       </a>
       <div className="app-shell">
         <aside className="sidebar">
@@ -151,28 +156,29 @@ function Inventory() {
               ⌕
             </span>
             <span>
-              어디뒀지<span className="brand-question">?</span>
+              {t("어디뒀지")}
+              <span className="brand-question">?</span>
             </span>
           </a>
-          <p className="brand-caption">기억 대신, 나만의 보관 지도</p>
+          <p className="brand-caption">{t("기억 대신, 나만의 보관 지도")}</p>
           <div className="workspace">
             <span className="workspace-icon" aria-hidden="true">
               ⌂
             </span>
             <div>
               <strong>{data.group.name}</strong>
-              <span>데모 사용자 · 개인 공간</span>
+              <span>{t("데모 사용자 · 개인 공간")}</span>
             </div>
             <span className="demo-dot" aria-hidden="true" />
           </div>
           <div className="sidebar-heading">
-            <h2>보관 위치</h2>
+            <h2>{t("보관 위치")}</h2>
             <button
               type="button"
               className="text-button"
               onClick={() => open({ type: "locations" })}
             >
-              관리
+              {t("관리")}
             </button>
           </div>
           <LocationTree
@@ -183,19 +189,32 @@ function Inventory() {
           <div className="sidebar-bottom">
             <span className="demo-badge">DEMO</span>
             <p>
-              물품은 데모 데이터예요.
+              {t("물품은 데모 데이터예요.")}
               <br />
-              물품 변경은 이 화면에서만 유지돼요.
+              {t("물품 변경은 이 화면에서만 유지돼요.")}
             </p>
           </div>
         </aside>
         <div className="main-shell">
           <header className="topbar">
-            <span className="topbar-label">내 물품 보관함</span>
+            <span className="topbar-label">{t("내 물품 보관함")}</span>
             <div className="button-row">
+              <label className="language-switch">
+                <span className="sr-only">{t("언어")}</span>
+                <select
+                  aria-label={t("언어")}
+                  value={language}
+                  onChange={(event) =>
+                    setLanguage(event.target.value === "en" ? "en" : "ko")
+                  }
+                >
+                  <option value="ko">한국어</option>
+                  <option value="en">English</option>
+                </select>
+              </label>
               <span className="local-indicator">
                 <span />
-                모의 데이터
+                {t("모의 데이터")}
               </span>
               <button
                 type="button"
@@ -203,13 +222,13 @@ function Inventory() {
                 onClick={() => open({ type: "account" })}
               >
                 {loading
-                  ? "연결 중…"
+                  ? t("연결 중…")
                   : user
-                    ? "내 계정·AI 설정"
-                    : "로그인·AI 설정"}
+                    ? t("내 계정·AI 설정")
+                    : t("로그인·AI 설정")}
               </button>
-              <span className="avatar" aria-label="사용자">
-                나
+              <span className="avatar" aria-label={t("사용자")}>
+                {t("나")}
               </span>
             </div>
           </header>
@@ -217,9 +236,9 @@ function Inventory() {
             <div className="page-heading">
               <div>
                 <p className="eyebrow">MY INVENTORY</p>
-                <h1>찾는 물건, 여기 있어요.</h1>
+                <h1>{t("찾는 물건, 여기 있어요.")}</h1>
                 <p className="subtitle">
-                  어디에 뒀는지 기억하지 않아도 괜찮아요.
+                  {t("어디에 뒀는지 기억하지 않아도 괜찮아요.")}
                 </p>
               </div>
               <button
@@ -227,15 +246,16 @@ function Inventory() {
                 className="button primary add-button"
                 onClick={() => open({ type: "new" })}
               >
-                <span aria-hidden="true">＋</span> 물품 등록
+                <span aria-hidden="true">＋</span> {t("물품 등록")}
               </button>
             </div>
             <div className="demo-banner">
               <span aria-hidden="true">ⓘ</span>
               <p>
-                <strong>데모 모드</strong> · 새로고침하면 물품·위치·사진이
-                초기화됩니다. 원본 사진은 브라우저에만 보관됩니다. AI 분석은
-                동의 후 사본을 전송해요.
+                <strong>{t("데모 모드")}</strong>{" "}
+                {t(
+                  "· 새로고침하면 물품·위치·사진이 초기화됩니다. 원본 사진은 브라우저에만 보관됩니다. AI 분석은 동의 후 사본을 전송해요.",
+                )}
               </p>
             </div>
             <div className="stats-grid">
@@ -244,10 +264,10 @@ function Inventory() {
                   ▦
                 </span>
                 <div>
-                  <span>등록한 물품</span>
+                  <span>{t("등록한 물품")}</span>
                   <p>
                     {data.items.length}
-                    <small>종</small>
+                    <small>{t("종")}</small>
                   </p>
                 </div>
               </div>
@@ -256,10 +276,10 @@ function Inventory() {
                   ⌂
                 </span>
                 <div>
-                  <span>보관 위치</span>
+                  <span>{t("보관 위치")}</span>
                   <p>
                     {data.locations.length}
-                    <small>곳</small>
+                    <small>{t("곳")}</small>
                   </p>
                 </div>
               </div>
@@ -268,10 +288,10 @@ function Inventory() {
                   ⌖
                 </span>
                 <div>
-                  <span>위치 미지정</span>
+                  <span>{t("위치 미지정")}</span>
                   <p>
                     {data.items.filter((item) => !item.locationId).length}
-                    <small>종</small>
+                    <small>{t("종")}</small>
                   </p>
                 </div>
               </div>
@@ -284,20 +304,20 @@ function Inventory() {
                 <div className="search-field">
                   <span aria-hidden="true">⌕</span>
                   <label className="sr-only" htmlFor="search">
-                    물품 검색
+                    {t("물품 검색")}
                   </label>
                   <input
                     type="search"
                     id="search"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="물품 이름, 태그, 메모로 검색"
+                    placeholder={t("물품 이름, 태그, 메모로 검색")}
                   />
                   {query && (
                     <button
                       type="button"
                       className="icon-button"
-                      aria-label="검색어 지우기"
+                      aria-label={t("검색어 지우기")}
                       onClick={() => setQuery("")}
                     >
                       ✕
@@ -306,18 +326,22 @@ function Inventory() {
                 </div>
                 <div className="mobile-location">
                   <label className="sr-only" htmlFor="mobile-location">
-                    보관 위치 필터
+                    {t("보관 위치 필터")}
                   </label>
                   <select
                     id="mobile-location"
                     value={location}
                     onChange={(event) => setLocation(event.target.value)}
                   >
-                    <option value="">모든 위치</option>
-                    <option value="unassigned">위치 미지정</option>
+                    <option value="">{t("모든 위치")}</option>
+                    <option value="unassigned">{t("위치 미지정")}</option>
                     {orderedLocations(data.locations).map((entry) => (
                       <option value={entry.id} key={entry.id}>
-                        {locationPath(data.locations, entry.id)}
+                        {locationPath(
+                          data.locations,
+                          entry.id,
+                          t("위치 미지정"),
+                        )}
                       </option>
                     ))}
                   </select>
@@ -327,25 +351,25 @@ function Inventory() {
                   className="button secondary manage-button"
                   onClick={() => open({ type: "locations" })}
                 >
-                  위치 관리
+                  {t("위치 관리")}
                 </button>
               </div>
               <div className="results-heading">
                 <div>
                   <h2 id="inventory-heading">
-                    {location ? "이 위치의 물품" : "모든 물품"}{" "}
+                    {location ? t("이 위치의 물품") : t("모든 물품")}{" "}
                     <span>{results.length}</span>
                   </h2>
                   <p className="filter-path">
                     {locationLabel}
                     {location && location !== "unassigned"
-                      ? " · 하위 위치 포함"
+                      ? t(" · 하위 위치 포함")
                       : ""}
                   </p>
                 </div>
                 <div className="sort-field">
                   <label className="sr-only" htmlFor="sort">
-                    물품 정렬
+                    {t("물품 정렬")}
                   </label>
                   <select
                     id="sort"
@@ -354,13 +378,13 @@ function Inventory() {
                       setSort(event.target.value as "recent" | "name")
                     }
                   >
-                    <option value="recent">최근 변경순</option>
-                    <option value="name">이름순</option>
+                    <option value="recent">{t("최근 변경순")}</option>
+                    <option value="name">{t("이름순")}</option>
                   </select>
                 </div>
               </div>
               <p className="sr-only" role="status">
-                검색 결과 {results.length}종
+                {t("검색 결과 {count}종", { count: results.length })}
               </p>
               {results.length ? (
                 <div className="items-grid">
@@ -370,7 +394,14 @@ function Inventory() {
                       className="item-card"
                       key={item.id}
                       onClick={() => open({ type: "detail", id: item.id })}
-                      aria-label={`${item.name}, ${locationPath(data.locations, item.locationId)}, 상세 보기`}
+                      aria-label={t("{name}, {path}, 상세 보기", {
+                        name: item.name,
+                        path: locationPath(
+                          data.locations,
+                          item.locationId,
+                          t("위치 미지정"),
+                        ),
+                      })}
                     >
                       <div
                         className={
@@ -387,17 +418,22 @@ function Inventory() {
                           </span>
                         )}
                         <span className="quantity-badge">
-                          {item.quantity}개
+                          {item.quantity}
+                          {t("개")}
                         </span>
                         {!item.photo && (
-                          <span className="no-photo">사진 미등록</span>
+                          <span className="no-photo">{t("사진 미등록")}</span>
                         )}
                       </div>
                       <div className="item-card-body">
                         <h3>{item.name}</h3>
                         <p className="item-path">
                           <span aria-hidden="true">⌖</span>
-                          {locationPath(data.locations, item.locationId)}
+                          {locationPath(
+                            data.locations,
+                            item.locationId,
+                            t("위치 미지정"),
+                          )}
                         </p>
                         <div className="tags">
                           {item.tags.slice(0, 2).map((tag) => (
@@ -420,13 +456,13 @@ function Inventory() {
                   <span aria-hidden="true">⌕</span>
                   <h3>
                     {query || location
-                      ? "검색 결과가 없어요"
-                      : "아직 등록된 물품이 없어요"}
+                      ? t("검색 결과가 없어요")
+                      : t("아직 등록된 물품이 없어요")}
                   </h3>
                   <p>
                     {query || location
-                      ? "다른 검색어나 보관 위치로 찾아보세요."
-                      : "첫 물품을 등록하고 보관 위치를 기록해 보세요."}
+                      ? t("다른 검색어나 보관 위치로 찾아보세요.")
+                      : t("첫 물품을 등록하고 보관 위치를 기록해 보세요.")}
                   </p>
                   {query || location ? (
                     <button
@@ -437,7 +473,7 @@ function Inventory() {
                         setLocation("");
                       }}
                     >
-                      검색·필터 초기화
+                      {t("검색·필터 초기화")}
                     </button>
                   ) : (
                     <button
@@ -445,25 +481,26 @@ function Inventory() {
                       className="button primary"
                       onClick={() => open({ type: "new" })}
                     >
-                      첫 물품 등록
+                      {t("첫 물품 등록")}
                     </button>
                   )}
                 </div>
               )}
             </section>
             <footer className="page-footer">
-              어디뒀지? <span>작은 기록으로, 더 가벼운 일상.</span>
+              {t("어디뒀지?")}{" "}
+              <span>{t("작은 기록으로, 더 가벼운 일상.")}</span>
             </footer>
           </main>
         </div>
       </div>
       <div className={notice ? "toast visible" : "toast"} role="status">
-        {notice}
+        {t(notice)}
         {notice && (
           <button
             type="button"
             className="icon-button"
-            aria-label="알림 닫기"
+            aria-label={t("알림 닫기")}
             onClick={() => setNotice("")}
           >
             ✕
@@ -472,7 +509,7 @@ function Inventory() {
       </div>
       {(panel?.type === "new" || panel?.type === "edit") && (
         <Modal
-          title={panel.type === "new" ? "새 물품 등록" : "물품 수정"}
+          title={panel.type === "new" ? t("새 물품 등록") : t("물품 수정")}
           onClose={close}
         >
           <ItemForm
@@ -495,29 +532,36 @@ function Inventory() {
         </Modal>
       )}
       {panel?.type === "detail" && selectedItem && (
-        <Modal title="물품 상세" onClose={close}>
+        <Modal title={t("물품 상세")} onClose={close}>
           <div className="item-detail">
             <div className="detail-visual">
               {selectedItem.photo ? (
                 <img
                   src={selectedItem.photo}
-                  alt={`${selectedItem.name} 사진`}
+                  alt={t("{name} 사진", { name: selectedItem.name })}
                 />
               ) : (
                 <>
                   <span aria-hidden="true">{itemSymbol(selectedItem)}</span>
-                  <p>등록된 사진이 없어요</p>
+                  <p>{t("등록된 사진이 없어요")}</p>
                 </>
               )}
             </div>
             <div className="section-row">
               <h3>{selectedItem.name}</h3>
-              <span className="chip">{selectedItem.quantity}개</span>
+              <span className="chip">
+                {selectedItem.quantity}
+                {t("개")}
+              </span>
             </div>
             <div className="current-location">
-              <span className="eyebrow">보관 위치</span>
+              <span className="eyebrow">{t("보관 위치")}</span>
               <p className="path">
-                {locationPath(data.locations, selectedItem.locationId)}
+                {locationPath(
+                  data.locations,
+                  selectedItem.locationId,
+                  t("위치 미지정"),
+                )}
               </p>
             </div>
             <div className="tags">
@@ -528,14 +572,14 @@ function Inventory() {
               ))}
             </div>
             <div>
-              <h4>메모</h4>
+              <h4>{t("메모")}</h4>
               <p className="detail-note">
-                {selectedItem.note || "작성한 메모가 없어요."}
+                {selectedItem.note || t("작성한 메모가 없어요.")}
               </p>
             </div>
             <p className="help">
-              최근 변경:{" "}
-              {new Date(selectedItem.updatedAt).toLocaleString("ko-KR")}
+              {t("최근 변경:")}{" "}
+              {new Date(selectedItem.updatedAt).toLocaleString(dateLocale)}
             </p>
             <footer className="modal-actions detail-actions">
               <button
@@ -543,28 +587,28 @@ function Inventory() {
                 className="text-button danger-text"
                 onClick={() => open({ type: "delete", id: selectedItem.id })}
               >
-                삭제
+                {t("삭제")}
               </button>
               <button
                 type="button"
                 className="button secondary"
                 onClick={() => open({ type: "move", id: selectedItem.id })}
               >
-                위치 이동
+                {t("위치 이동")}
               </button>
               <button
                 type="button"
                 className="button primary"
                 onClick={() => open({ type: "edit", id: selectedItem.id })}
               >
-                수정
+                {t("수정")}
               </button>
             </footer>
           </div>
         </Modal>
       )}
       {panel?.type === "move" && selectedItem && (
-        <Modal title="물품 위치 이동" onClose={close}>
+        <Modal title={t("물품 위치 이동")} onClose={close}>
           <MoveForm
             item={selectedItem}
             locations={data.locations}
@@ -578,18 +622,17 @@ function Inventory() {
         </Modal>
       )}
       {panel?.type === "delete" && selectedItem && (
-        <Modal title="물품 삭제" onClose={close}>
+        <Modal title={t("물품 삭제")} onClose={close}>
           <div className="form-stack">
-            <p>
-              <strong>{selectedItem.name}</strong> 물품을 삭제할까요?
-            </p>
+            <p>{t("{name} 물품을 삭제할까요?", { name: selectedItem.name })}</p>
             <p className="help">
-              등록한 사진과 메모도 이 데모에서 함께 제거됩니다. 취소하면 그대로
-              유지돼요.
+              {t(
+                "등록한 사진과 메모도 이 데모에서 함께 제거됩니다. 취소하면 그대로 유지돼요.",
+              )}
             </p>
             {actionError && (
               <p className="error" role="alert">
-                {actionError}
+                {t(actionError)}
               </p>
             )}
             <footer className="modal-actions">
@@ -598,7 +641,7 @@ function Inventory() {
                 className="button secondary"
                 onClick={close}
               >
-                취소
+                {t("취소")}
               </button>
               <button
                 type="button"
@@ -613,19 +656,19 @@ function Inventory() {
                   }
                 }}
               >
-                물품 삭제 확인
+                {t("물품 삭제 확인")}
               </button>
             </footer>
           </div>
         </Modal>
       )}
       {panel?.type === "account" && (
-        <Modal title="계정·내 Gemini API" onClose={close}>
+        <Modal title={t("계정·내 Gemini API")} onClose={close}>
           <AccountSettings />
         </Modal>
       )}
       {panel?.type === "locations" && (
-        <Modal title="보관 위치 관리" onClose={close} wide>
+        <Modal title={t("보관 위치 관리")} onClose={close} wide>
           <LocationManager
             data={data}
             onSave={(draft, id) => {

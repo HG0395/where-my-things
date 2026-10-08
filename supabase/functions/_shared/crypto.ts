@@ -57,8 +57,11 @@ export async function fingerprint(
   bytes: Uint8Array,
   model: string,
   version: string,
+  language: "ko" | "en" = "ko",
 ) {
-  const prefix = encoder.encode(`inventory-v1:${model}:${version}:`);
+  const prefix = encoder.encode(
+    `inventory-v2:${language}:${model}:${version}:`,
+  );
   const input = new Uint8Array(prefix.length + bytes.length);
   input.set(prefix);
   input.set(bytes, prefix.length);

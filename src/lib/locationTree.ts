@@ -3,8 +3,9 @@ import type { StorageLocation } from "../domain/types.ts";
 export function locationPath(
   locations: StorageLocation[],
   id: string | null,
+  unassignedLabel = "위치 미지정",
 ): string {
-  if (!id) return "위치 미지정";
+  if (!id) return unassignedLabel;
   const names: string[] = [];
   const visited = new Set<string>();
   let current = locations.find((location) => location.id === id);
@@ -13,7 +14,7 @@ export function locationPath(
     names.unshift(current.name);
     current = locations.find((location) => location.id === current?.parentId);
   }
-  return names.join(" › ") || "위치 미지정";
+  return names.join(" › ") || unassignedLabel;
 }
 
 export function descendantIds(

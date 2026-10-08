@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/context.ts";
 import { useState } from "react";
 import type { Snapshot } from "../../domain/types.ts";
 import { descendantIds } from "../../lib/locationTree.ts";
@@ -11,6 +12,7 @@ export function LocationTree({
   selected: string;
   onSelect: (value: string) => void;
 }) {
+  const { t } = useI18n();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   function toggle(id: string) {
     setCollapsed((previous) => {
@@ -41,7 +43,12 @@ export function LocationTree({
                 <button
                   type="button"
                   className="tree-toggle"
-                  aria-label={`${location.name} ${collapsed.has(location.id) ? "펼치기" : "접기"}`}
+                  aria-label={t(
+                    collapsed.has(location.id)
+                      ? "{name} 펼치기"
+                      : "{name} 접기",
+                    { name: location.name },
+                  )}
                   aria-expanded={!collapsed.has(location.id)}
                   onClick={() => toggle(location.id)}
                 >
@@ -72,7 +79,7 @@ export function LocationTree({
       });
   }
   return (
-    <nav aria-label="보관 위치 필터" className="location-tree">
+    <nav aria-label={t("보관 위치 필터")} className="location-tree">
       <button
         type="button"
         onClick={() => onSelect("")}
@@ -83,7 +90,7 @@ export function LocationTree({
             : "tree-select all-locations"
         }
       >
-        <span>모든 물품</span>
+        <span>{t("모든 물품")}</span>
         <span className="tree-count">{data.items.length}</span>
       </button>
       <ul>{children(null)}</ul>
@@ -97,7 +104,7 @@ export function LocationTree({
             : "tree-select all-locations"
         }
       >
-        <span>위치 미지정</span>
+        <span>{t("위치 미지정")}</span>
         <span className="tree-count">
           {data.items.filter((item) => !item.locationId).length}
         </span>

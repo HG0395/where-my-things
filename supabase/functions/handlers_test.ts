@@ -188,6 +188,7 @@ Deno.test(
     const encrypted = await encryptKey(raw, userA, version, master);
     let cached = true;
     let providerCalls = 0;
+    const reservedHashes: string[] = [];
     await withMock(
       async (input, init) => {
         const url = new URL(String(input));
@@ -199,6 +200,7 @@ Deno.test(
         if (url.pathname.endsWith("/rpc/byok_reserve")) {
           const body = JSON.parse(String(init?.body));
           assert(body.p_user_id === userA);
+          reservedHashes.push(body.p_fingerprint);
           return response(
             cached
               ? {
@@ -220,6 +222,7 @@ Deno.test(
           const body = JSON.parse(String(init?.body));
           assert(body.generationConfig.maxOutputTokens === 256);
           assert(body.generationConfig.thinkingConfig.thinkingBudget === 0);
+          assert(body.contents[0].parts[0].text.includes("English name"));
           return response({
             candidates: [
               {
@@ -242,12 +245,18 @@ Deno.test(
         assert(cacheResult.chargedTokens === 0);
         assert(providerCalls === 0);
         cached = false;
-        const second = await recognize(request({ image: jpeg, userId: userB }));
+        const second = await recognize(
+          request({ image: jpeg, userId: userB, language: "en" }),
+        );
         const fresh = await second.json();
         assert(second.status === 200);
         assert(!fresh.cached);
         assert(fresh.chargedTokens === 110);
         assert(Number(providerCalls) === 1);
+        assert(
+          reservedHashes.length === 2 &&
+            reservedHashes[0] !== reservedHashes[1],
+        );
       },
     );
   },
@@ -285,6 +294,27 @@ Deno.test(
         assert(result.status === 422);
         assert(!(await result.text()).includes(raw));
         assert(Number(providerCalls) === 1);
+      },
+    );
+  },
+);
+
+Deno.test(
+  "Unsupported languages are rejected after authentication before DB/provider access",
+  async () => {
+    let calls = 0;
+    await withMock(
+      async (input) => {
+        calls++;
+        assert(String(input).endsWith("/auth/v1/user"));
+        return authResponse();
+      },
+      async () => {
+        const result = await recognize(
+          request({ image: jpeg, language: "fr" }),
+        );
+        assert(result.status === 400);
+        assert(calls === 1);
       },
     );
   },

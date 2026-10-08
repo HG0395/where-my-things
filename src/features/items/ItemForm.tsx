@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/context.ts";
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { Item, ItemDraft, StorageLocation } from "../../domain/types.ts";
@@ -18,6 +19,7 @@ export function ItemForm({
   onSave: (draft: ItemDraft) => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   const [name, setName] = useState(item?.name ?? "");
   const [locationId, setLocationId] = useState(
     item?.locationId ?? initialLocation,
@@ -69,14 +71,18 @@ export function ItemForm({
     }
   }
   return (
-    <form onSubmit={submit} className="form-stack">
+    <form onSubmit={submit} className="form-stack" noValidate>
       <div className="photo-editor">
         {photo ? (
-          <img className="photo-preview" src={photo} alt="선택한 물품 사진" />
+          <img
+            className="photo-preview"
+            src={photo}
+            alt={t("선택한 물품 사진")}
+          />
         ) : (
           <div className="photo-placeholder">
             <span aria-hidden="true">▧</span>
-            <p>사진으로 더 쉽게 기억해요</p>
+            <p>{t("사진으로 더 쉽게 기억해요")}</p>
           </div>
         )}
         <div className="button-row">
@@ -86,7 +92,7 @@ export function ItemForm({
             disabled={reading || aiBusy}
             onClick={() => fileInput.current?.click()}
           >
-            사진 {photo ? "교체" : "선택"}
+            {t(photo ? "사진 교체" : "사진 선택")}
           </button>
           <button
             type="button"
@@ -94,7 +100,7 @@ export function ItemForm({
             disabled={reading || aiBusy}
             onClick={() => cameraInput.current?.click()}
           >
-            사진 촬영
+            {t("사진 촬영")}
           </button>
           {photo && (
             <button
@@ -108,7 +114,7 @@ export function ItemForm({
                 setShowCandidates(false);
               }}
             >
-              사진 제거
+              {t("사진 제거")}
             </button>
           )}
         </div>
@@ -116,7 +122,7 @@ export function ItemForm({
           ref={fileInput}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          aria-label="물품 사진 파일"
+          aria-label={t("물품 사진 파일")}
           className="file-input"
           onChange={(event) => {
             void selectPhoto(event.target.files?.[0]);
@@ -128,7 +134,7 @@ export function ItemForm({
           type="file"
           accept="image/jpeg,image/png,image/webp"
           capture="environment"
-          aria-label="카메라로 물품 사진 촬영"
+          aria-label={t("카메라로 물품 사진 촬영")}
           className="file-input"
           onChange={(event) => {
             void selectPhoto(event.target.files?.[0]);
@@ -137,16 +143,20 @@ export function ItemForm({
         />
         <p className="help">
           {reading
-            ? "사진을 확인하고 있어요…"
-            : "선택 사항 · JPEG, PNG, WebP · 최대 5MB. 촬영은 기기에 따라 파일 선택으로 열릴 수 있어요."}
+            ? t("사진을 확인하고 있어요…")
+            : t(
+                "선택 사항 · JPEG, PNG, WebP · 최대 5MB. 촬영은 기기에 따라 파일 선택으로 열릴 수 있어요.",
+              )}
         </p>
       </div>
       <div className="ai-panel">
         <div className="section-row">
           <div>
-            <strong>모의 AI 분석</strong>
+            <strong>{t("모의 AI 분석")}</strong>
             <p className="help">
-              실제 사진을 인식하지 않습니다. 정해진 후보로 보정 과정을 체험해요.
+              {t(
+                "실제 사진을 인식하지 않습니다. 정해진 후보로 보정 과정을 체험해요.",
+              )}
             </p>
           </div>
           <button
@@ -155,14 +165,15 @@ export function ItemForm({
             disabled={!photo || reading || aiBusy}
             onClick={() => setShowCandidates(true)}
           >
-            모의 분석
+            {t("모의 분석")}
           </button>
         </div>
         {showCandidates && (
           <div className="candidate-list">
             <p className="help">
-              후보를 선택한 뒤 아래 입력값을 직접 고쳐 주세요. 저장 전에는
-              등록되지 않아요.
+              {t(
+                "후보를 선택한 뒤 아래 입력값을 직접 고쳐 주세요. 저장 전에는 등록되지 않아요.",
+              )}
             </p>
             {[
               ["충전기", "전자기기"],
@@ -174,11 +185,11 @@ export function ItemForm({
                 key={candidate}
                 className="chip candidate"
                 onClick={() => {
-                  setName(candidate);
-                  setTags(tag);
+                  setName(t(candidate));
+                  setTags(t(tag));
                 }}
               >
-                {candidate} · {tag}
+                {t(candidate)} · {t(tag)}
               </button>
             ))}
           </div>
@@ -194,7 +205,7 @@ export function ItemForm({
         }}
       />
       <label htmlFor="item-name">
-        물품 이름 <span className="required">필수</span>
+        {t("물품 이름")} <span className="required">{t("필수")}</span>
       </label>
       <input
         id="item-name"
@@ -202,11 +213,11 @@ export function ItemForm({
         onChange={(event) => setName(event.target.value)}
         maxLength={80}
         required
-        placeholder="예: 여행용 충전기"
+        placeholder={t("예: 여행용 충전기")}
       />
       <div className="form-grid">
         <div>
-          <label htmlFor="item-location">보관 위치</label>
+          <label htmlFor="item-location">{t("보관 위치")}</label>
           <LocationSelect
             locations={locations}
             value={locationId}
@@ -216,7 +227,7 @@ export function ItemForm({
         </div>
         <div>
           <label htmlFor="item-quantity">
-            수량 <span className="required">필수</span>
+            {t("수량")} <span className="required">{t("필수")}</span>
           </label>
           <input
             id="item-quantity"
@@ -230,41 +241,41 @@ export function ItemForm({
           />
         </div>
       </div>
-      <label htmlFor="item-tags">태그</label>
+      <label htmlFor="item-tags">{t("태그")}</label>
       <input
         id="item-tags"
         value={tags}
         onChange={(event) => setTags(event.target.value)}
-        placeholder="여행, 전자기기"
+        placeholder={t("여행, 전자기기")}
         aria-describedby="tags-help"
       />
       <p className="help" id="tags-help">
-        쉼표로 구분해 주세요. 최대 10개, 각 20자까지 가능해요.
+        {t("쉼표로 구분해 주세요. 최대 10개, 각 20자까지 가능해요.")}
       </p>
-      <label htmlFor="item-note">메모</label>
+      <label htmlFor="item-note">{t("메모")}</label>
       <textarea
         id="item-note"
         value={note}
         onChange={(event) => setNote(event.target.value)}
         maxLength={1000}
         rows={3}
-        placeholder="색상, 특징, 함께 보관한 물건 등을 적어 주세요."
+        placeholder={t("색상, 특징, 함께 보관한 물건 등을 적어 주세요.")}
       />
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
       <footer className="modal-actions">
         <button type="button" className="button secondary" onClick={onClose}>
-          취소
+          {t("취소")}
         </button>
         <button
           type="submit"
           disabled={reading || aiBusy}
           className="button primary"
         >
-          {item ? "수정 저장" : "물품 등록"}
+          {item ? t("수정 저장") : t("물품 등록")}
         </button>
       </footer>
     </form>

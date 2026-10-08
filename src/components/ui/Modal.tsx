@@ -1,3 +1,4 @@
+import { useI18n } from "../../i18n/context.ts";
 import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
 export function Modal({
@@ -11,6 +12,7 @@ export function Modal({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -33,7 +35,7 @@ export function Modal({
         <button
           type="button"
           className="icon-button"
-          aria-label="창 닫기"
+          aria-label={t("창 닫기")}
           onClick={onClose}
         >
           ✕

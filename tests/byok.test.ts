@@ -50,10 +50,16 @@ test("Image fingerprint changes with model/key version; generation has bounded o
   assert.equal(a, await fingerprint(bytes, "model-a", keyVersion));
   assert.notEqual(a, await fingerprint(bytes, "model-b", keyVersion));
   assert.notEqual(a, await fingerprint(bytes, "model-a", userB));
+  assert.notEqual(a, await fingerprint(bytes, "model-a", keyVersion, "en"));
+  assert.equal(a, await fingerprint(bytes, "model-a", keyVersion, "ko"));
   const body = geminiBody("test");
   assert.equal(body.generationConfig.maxOutputTokens, 256);
   assert.equal(body.generationConfig.thinkingConfig.thinkingBudget, 0);
   assert.equal(body.contents[0].parts.length, 2);
+  const english = geminiBody("test", "en");
+  assert.match(english.contents[0].parts[0].text!, /English name/);
+  assert.match(body.contents[0].parts[0].text!, /한국어/);
+  assert.deepEqual(english.generationConfig, body.generationConfig);
 });
 
 test("JPEG dimensions/size and AI result shape are checked before use", () => {

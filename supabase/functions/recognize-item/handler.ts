@@ -25,6 +25,9 @@ export async function handler(request: Request) {
       return new Response(null, { status: 204, headers });
     const { admin, userId } = await authenticate(request);
     const body = await readJson(request);
+    const language = body.language ?? "ko";
+    if (language !== "ko" && language !== "en")
+      throw new HttpError(400, "지원하지 않는 언어예요.");
     let image;
     try {
       image = validateJpeg(body.image);
@@ -48,7 +51,7 @@ export async function handler(request: Request) {
       key.version,
       secret,
     );
-    const hash = await fingerprint(image.bytes, MODEL, key.version);
+    const hash = await fingerprint(image.bytes, MODEL, key.version, language);
     const { data: reservation, error: reserveError } = await admin.rpc(
       "byok_reserve",
       { p_user_id: userId, p_fingerprint: hash, p_key_version: key.version },
@@ -82,7 +85,7 @@ export async function handler(request: Request) {
             "Content-Type": "application/json",
             "x-goog-api-key": rawKey,
           },
-          body: JSON.stringify(geminiBody(image.base64)),
+          body: JSON.stringify(geminiBody(image.base64, language)),
           signal: AbortSignal.timeout(25_000),
         },
       );

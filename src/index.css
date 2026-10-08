@@ -1128,3 +1128,45 @@ textarea {
     display: none;
   }
 }
+.language-switch {
+  margin: 0;
+}
+.language-switch select {
+  width: auto;
+  min-width: 94px;
+  padding: 7px 10px;
+  font-size: 12px;
+  background: #f7faf8;
+}
+.topbar {
+  min-height: 74px;
+  height: auto;
+  padding-block: 12px;
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .topbar .local-indicator {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .topbar {
+    min-height: 60px;
+  }
+  .topbar .avatar {
+    display: none;
+  }
+  html[lang="en"] .topbar-label::before {
+    content: "Where Is It? · ";
+  }
+}
+@media (max-width: 520px) {
+  .topbar-label {
+    display: none;
+  }
+  .topbar > .button-row {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+}
